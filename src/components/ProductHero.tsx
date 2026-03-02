@@ -175,7 +175,7 @@ const ProductHero = () => {
           <img
             src={slides[currentImage].src}
             alt={`Tênis ${slides[currentImage].name}`}
-            className="w-full h-full object-cover transition-opacity duration-300"
+            className="w-full h-full object-cover"
           />
         )}
         <button
