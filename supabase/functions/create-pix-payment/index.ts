@@ -14,11 +14,20 @@ interface PixRequestBody {
     email: string;
     phone: string;
   };
+  address: {
+    street: string;
+    number: string;
+    complement?: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+    zipCode: string;
+  };
   items: {
     colorName: string;
     size: number;
     quantity: number;
-    unitPrice: number;
+    unitPrice: number; // in reais
   }[];
 }
 
@@ -28,101 +37,117 @@ serve(async (req: Request) => {
   }
 
   try {
-    const FASTSOFT_CLIENT_ID = Deno.env.get("FASTSOFT_CLIENT_ID");
-    const FASTSOFT_CLIENT_SECRET = Deno.env.get("FASTSOFT_CLIENT_SECRET");
+    const FASTSOFT_API_TOKEN = Deno.env.get("FASTSOFT_API_TOKEN");
 
-    if (!FASTSOFT_CLIENT_ID || !FASTSOFT_CLIENT_SECRET) {
+    if (!FASTSOFT_API_TOKEN) {
+      console.error("FASTSOFT_API_TOKEN not configured");
       return new Response(
-        JSON.stringify({ error: "FastSoft credentials not configured" }),
+        JSON.stringify({ error: "Credenciais de pagamento não configuradas" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const body: PixRequestBody = await req.json();
-    const { amount, customer, items } = body;
+    const { amount, customer, address, items } = body;
 
-    if (!amount || !customer?.name || !customer?.cpf) {
+    if (!amount || !customer?.name || !customer?.cpf || !customer?.email) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: amount, customer.name, customer.cpf" }),
+        JSON.stringify({ error: "Campos obrigatórios: amount, customer.name, customer.cpf, customer.email" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Authenticate with FastSoft API
-    const authResponse = await fetch("https://api.fastsoft.com.br/auth/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        client_id: FASTSOFT_CLIENT_ID,
-        client_secret: FASTSOFT_CLIENT_SECRET,
-        grant_type: "client_credentials",
-      }),
-    });
+    // Build Basic Auth header: base64("x:SECRET_KEY")
+    const basicAuth = btoa(`x:${FASTSOFT_API_TOKEN}`);
 
-    if (!authResponse.ok) {
-      const authError = await authResponse.text();
-      console.error("FastSoft auth error:", authError);
-      return new Response(
-        JSON.stringify({ error: "Failed to authenticate with payment provider" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    // Build request body per FastSoft API docs
+    const transactionBody = {
+      amount,
+      currency: "BRL",
+      paymentMethod: "PIX",
+      pix: {
+        expiresInDays: 1,
+      },
+      customer: {
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone,
+        document: {
+          number: customer.cpf,
+          type: "CPF",
+        },
+        address: {
+          street: address.street,
+          streetNumber: address.number,
+          complement: address.complement || "",
+          zipCode: address.zipCode,
+          neighborhood: address.neighborhood,
+          city: address.city,
+          state: address.state,
+          country: "BR",
+        },
+      },
+      shipping: {
+        fee: 0,
+        address: {
+          street: address.street,
+          streetNumber: address.number,
+          complement: address.complement || "",
+          zipCode: address.zipCode,
+          neighborhood: address.neighborhood,
+          city: address.city,
+          state: address.state,
+          country: "BR",
+        },
+      },
+      items: items.map((item) => ({
+        title: `Carbon Marathon Chunta - ${item.colorName} Tam.${item.size}`,
+        unitPrice: Math.round(item.unitPrice * 100),
+        quantity: item.quantity,
+        tangible: true,
+      })),
+    };
 
-    const authData = await authResponse.json();
-    const accessToken = authData.access_token;
+    console.log("Creating FastSoft PIX transaction:", JSON.stringify(transactionBody));
 
-    // Create PIX charge
-    const description = items
-      .map((i) => `${i.quantity}x ${i.colorName} Tam.${i.size}`)
-      .join(", ");
-
-    const expirationDate = new Date();
-    expirationDate.setHours(expirationDate.getHours() + 1);
-
-    const pixResponse = await fetch("https://api.fastsoft.com.br/pix/charge", {
+    const response = await fetch("https://api.fastsoftbrasil.com/api/user/transactions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Basic ${basicAuth}`,
       },
-      body: JSON.stringify({
-        amount,
-        description: `World Tennis - ${description}`,
-        customer: {
-          name: customer.name,
-          cpf: customer.cpf.replace(/\D/g, ""),
-          email: customer.email,
-          phone: customer.phone.replace(/\D/g, ""),
-        },
-        expiration_date: expirationDate.toISOString(),
-      }),
+      body: JSON.stringify(transactionBody),
     });
 
-    if (!pixResponse.ok) {
-      const pixError = await pixResponse.text();
-      console.error("FastSoft PIX error:", pixError);
+    const responseText = await response.text();
+    console.log("FastSoft response status:", response.status);
+    console.log("FastSoft response body:", responseText);
+
+    if (!response.ok) {
       return new Response(
-        JSON.stringify({ error: "Failed to create PIX charge" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "Erro ao criar cobrança PIX", details: responseText }),
+        { status: response.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const pixData = await pixResponse.json();
+    const data = JSON.parse(responseText);
+    const txData = data.data || data;
 
     return new Response(
       JSON.stringify({
-        qrcode: pixData.qrcode || null,
-        url: pixData.url || pixData.pix_url || null,
-        expirationDate: expirationDate.toISOString(),
-        amount,
-        transactionId: pixData.transaction_id || pixData.id || "",
+        qrcode: txData.pix?.qrcode || null,
+        url: txData.pix?.url || null,
+        expirationDate: txData.pix?.expirationDate || null,
+        amount: txData.amount,
+        transactionId: txData.id || "",
+        status: txData.status,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Unexpected error:", error);
     return new Response(
-      JSON.stringify({ error: "Internal server error" }),
+      JSON.stringify({ error: "Erro interno do servidor" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
