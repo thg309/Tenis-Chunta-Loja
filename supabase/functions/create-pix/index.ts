@@ -17,38 +17,39 @@ serve(async (req: Request) => {
   try {
     if (!DUTTYFY_URL) {
       return new Response(
-        JSON.stringify({ error: "DUTTYFY_PIX_URL not configured" }),
+        JSON.stringify({ error: "Gateway URL not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const body = await req.json();
-    const { amount, customer, items, description, utm } = body;
+    const { amount, customer, item, description, utm } = body;
 
-    if (!amount || !customer?.name || !customer?.cpf) {
+    if (!amount || !customer?.name || !customer?.document) {
       return new Response(
-        JSON.stringify({ error: "Missing required fields: amount, customer.name, customer.cpf" }),
+        JSON.stringify({ error: "Missing required fields: amount, customer.name, customer.document" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Build payload for Duttyfy
-    const cleanCpf = customer.cpf.replace(/\D/g, "");
+    // Build payload strictly per Duttyfy docs
     const pixPayload: Record<string, unknown> = {
       amount,
       paymentMethod: "PIX",
-      cpf: cleanCpf,
       customer: {
         name: customer.name,
+        document: customer.document.replace(/\D/g, ""),
         email: customer.email || "",
         phone: customer.phone ? customer.phone.replace(/\D/g, "") : "",
       },
-      item: {
-        title: description || "World Tennis - Pagamento PIX",
+      item: item || {
+        title: description || "Pagamento PIX",
         price: amount,
+        quantity: 1,
       },
     };
 
+    if (description) pixPayload.description = description;
     if (utm) pixPayload.utm = utm;
 
     // Call Duttyfy API
@@ -61,14 +62,14 @@ serve(async (req: Request) => {
     const pixData = await pixResponse.json();
 
     if (!pixResponse.ok) {
-      console.error("Duttyfy error:", JSON.stringify(pixData));
+      console.error("Gateway error:", JSON.stringify(pixData));
       return new Response(
         JSON.stringify({ error: "Failed to create PIX charge", details: pixData }),
         { status: pixResponse.status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    // Extract transaction ID from response
+    // Extract IDs per docs: transactionId or _id.$oid
     const transactionId = pixData.transactionId || pixData._id?.$oid || pixData.id || "";
     const pixCode = pixData.pixCode || pixData.qrcode || pixData.pix_code || pixData.copiaECola || "";
 
@@ -82,10 +83,10 @@ serve(async (req: Request) => {
       status: "PENDING",
       amount,
       customer_name: customer.name,
-      customer_cpf: customer.cpf.replace(/\D/g, ""),
+      customer_cpf: customer.document.replace(/\D/g, ""),
       customer_email: customer.email || null,
       customer_phone: customer.phone ? customer.phone.replace(/\D/g, "") : null,
-      description: pixPayload.description,
+      description: description || null,
       pix_code: pixCode,
     });
 
@@ -94,7 +95,6 @@ serve(async (req: Request) => {
         pixCode,
         transactionId,
         status: "PENDING",
-        raw: pixData,
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

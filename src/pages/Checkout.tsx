@@ -264,23 +264,23 @@ const Checkout = () => {
       const { supabase } = await import("@/integrations/supabase/client");
 
       const amountInCents = Math.round(totalPrice * 100);
+      const itemDescription = `World Tennis - ${items.map((i) => `${i.quantity}x ${i.colorName} Tam.${i.size}`).join(", ")}`;
 
       const { data, error } = await supabase.functions.invoke("create-pix", {
         body: {
           amount: amountInCents,
           customer: {
             name: nome,
-            cpf: cpf,
+            document: cpf.replace(/\D/g, ""),
             email: email,
-            phone: telefone,
+            phone: telefone.replace(/\D/g, ""),
           },
-          items: items.map((item) => ({
-            colorName: item.colorName,
-            size: item.size,
-            quantity: item.quantity,
-            unitPrice: item.unitPrice,
-          })),
-          description: `World Tennis - ${items.map((i) => `${i.quantity}x ${i.colorName} Tam.${i.size}`).join(", ")}`,
+          item: {
+            title: itemDescription,
+            price: amountInCents,
+            quantity: items.reduce((sum, i) => sum + i.quantity, 0),
+          },
+          description: itemDescription,
         },
       });
 
