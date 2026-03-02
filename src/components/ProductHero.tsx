@@ -6,7 +6,7 @@ import FlashOfferModal from "./FlashOfferModal";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
-const HERO_VIDEO = "/videos/hero-video.mp4";
+const HERO_VIDEOS = ["/videos/hero-video.mp4", "/videos/hero-video-2.mp4"];
 const SIZE_TABLE_IMG = "/images/tabela-tamanhos.png";
 const SIZES = [34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45] as const;
 
@@ -30,9 +30,9 @@ interface Slide {
   label: string;
 }
 
-/** Build a flat slide list: [azul1, azul2, azul3, bege1, ...] */
+/** Build a flat slide list: [video1, video2, azul1, azul2, ...] */
 function buildSlides(): { slides: Slide[]; colorStartIndex: number[] } {
-  const slides: Slide[] = [];
+  const slides: Slide[] = HERO_VIDEOS.map((src) => ({ type: "video" as const, src, label: "Vídeo" }));
   const colorStartIndex: number[] = [];
 
   for (const color of COLORS) {
@@ -72,18 +72,24 @@ const ProductHero = () => {
   const dragStartX = useRef(0);
   const isDragging = useRef(false);
   const colorRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const videoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   // Preload all product images on mount
   const allImageUrls = useMemo(() => SLIDES.filter((s) => s.type === "image").map((s) => s.src), []);
   usePreloadImages(allImageUrls);
 
   // Autoplay video when it's visible
+  // Play/pause videos based on active slide
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video || SLIDES[slideIdx]?.type !== "video") return;
-    video.muted = true;
-    video.play().catch(() => {});
+    videoRefs.current.forEach((video, i) => {
+      if (!video) return;
+      if (SLIDES[slideIdx]?.type === "video" && SLIDES[slideIdx]?.src === video.src) {
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+        video.currentTime = 0;
+      }
+    });
   }, [slideIdx]);
 
   const slide = SLIDES[slideIdx];
@@ -193,10 +199,11 @@ const ProductHero = () => {
           s.type === "video" ? (
             <video
               key={i}
-              ref={i === slideIdx ? videoRef : undefined}
+              ref={(el) => { videoRefs.current[i] = el; }}
               src={s.src}
               className={`absolute inset-0 w-full h-full object-cover ${i === slideIdx ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"}`}
-              autoPlay loop muted playsInline preload="auto"
+              loop playsInline preload="metadata"
+              style={{ pointerEvents: "none" }}
             />
           ) : (
             <img
