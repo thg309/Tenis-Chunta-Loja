@@ -69,7 +69,8 @@ const ProductHero = () => {
   const [showSizeTable, setShowSizeTable] = useState(false);
   const [showError, setShowError] = useState(false);
 
-  const touchStartX = useRef(0);
+  const dragStartX = useRef(0);
+  const isDragging = useRef(false);
   const colorRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -126,16 +127,25 @@ const ProductHero = () => {
     });
   };
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
+  // Touch swipe
+  const onTouchStart = (e: React.TouchEvent) => { dragStartX.current = e.touches[0].clientX; };
   const onTouchEnd = (e: React.TouchEvent) => {
-    const diff = touchStartX.current - e.changedTouches[0].clientX;
+    const diff = dragStartX.current - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 50) diff > 0 ? goNext() : goPrev();
   };
 
-  // ─── Render ──────────────────────────────────────────────────────────────
+  // Mouse drag
+  const onMouseDown = (e: React.MouseEvent) => {
+    isDragging.current = true;
+    dragStartX.current = e.clientX;
+  };
+  const onMouseUp = (e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    isDragging.current = false;
+    const diff = dragStartX.current - e.clientX;
+    if (Math.abs(diff) > 50) diff > 0 ? goNext() : goPrev();
+  };
+  const onMouseLeave = () => { isDragging.current = false; };
 
   return (
     <section id="inicio" className="container px-4 pt-5 pb-6">
@@ -171,9 +181,12 @@ const ProductHero = () => {
 
       {/* ─── Carousel ──────────────────────────────────────────────────────── */}
       <div
-        className="relative rounded-2xl overflow-hidden mb-5 aspect-square max-w-lg mx-auto bg-card shadow-sm"
+        className="relative rounded-2xl overflow-hidden mb-5 aspect-square max-w-lg mx-auto bg-card shadow-sm select-none cursor-grab active:cursor-grabbing"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
+        onMouseDown={onMouseDown}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseLeave}
       >
         {/* Render ALL slides stacked; only the active one is visible */}
         {SLIDES.map((s, i) => (
@@ -197,24 +210,24 @@ const ProductHero = () => {
 
         <button
           onClick={goPrev}
-          className="absolute left-2.5 top-1/2 -translate-y-1/2 bg-card/80 backdrop-blur-md rounded-full p-2 shadow-lg hover:bg-card transition-colors"
+          className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 bg-card/80 backdrop-blur-md rounded-full p-2 shadow-lg hover:bg-card transition-colors"
           aria-label="Anterior"
         >
           <ChevronLeft className="w-4 h-4 text-foreground" />
         </button>
         <button
           onClick={goNext}
-          className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-card/80 backdrop-blur-md rounded-full p-2 shadow-lg hover:bg-card transition-colors"
+          className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 bg-card/80 backdrop-blur-md rounded-full p-2 shadow-lg hover:bg-card transition-colors"
           aria-label="Próximo"
         >
           <ChevronRight className="w-4 h-4 text-foreground" />
         </button>
 
-        <div className="absolute top-3 right-3 bg-foreground/70 backdrop-blur-sm text-background text-[11px] font-bold px-2.5 py-1 rounded-full">
+        <div className="absolute top-3 right-3 z-20 bg-foreground/70 backdrop-blur-sm text-background text-[11px] font-bold px-2.5 py-1 rounded-full">
           {slideIdx + 1}/{totalSlides}
         </div>
 
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
           {SLIDES.map((_, i) => (
             <button
               key={i}
