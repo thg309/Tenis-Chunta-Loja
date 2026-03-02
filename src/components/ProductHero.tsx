@@ -6,7 +6,7 @@ import FlashOfferModal from "./FlashOfferModal";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
-const HERO_VIDEOS = ["/videos/hero-video.mp4", "/videos/hero-video-2.mp4"];
+const HERO_VIDEOS = ["/videos/hero-video.mp4"];
 const SIZE_TABLE_IMG = "/images/tabela-tamanhos.png";
 const SIZES = [34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45] as const;
 
@@ -202,7 +202,7 @@ const ProductHero = () => {
               ref={(el) => { videoRefs.current[i] = el; }}
               src={s.src}
               className={`absolute inset-0 w-full h-full object-cover ${i === slideIdx ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"}`}
-              loop playsInline preload="metadata"
+              autoPlay loop playsInline muted preload="auto"
               style={{ pointerEvents: "none" }}
             />
           ) : (
