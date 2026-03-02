@@ -81,9 +81,11 @@ const ProductHero = () => {
   // Autoplay video when it's visible
   // Play/pause videos based on active slide
   useEffect(() => {
-    videoRefs.current.forEach((video, i) => {
+    videoRefs.current.forEach((video) => {
       if (!video) return;
-      if (SLIDES[slideIdx]?.type === "video" && SLIDES[slideIdx]?.src === video.src) {
+      const videoSlideIdx = SLIDES.findIndex(s => s.type === "video" && s.src === video.getAttribute("src"));
+      if (videoSlideIdx === slideIdx) {
+        video.muted = true;
         video.play().catch(() => {});
       } else {
         video.pause();
@@ -203,13 +205,14 @@ const ProductHero = () => {
               src={s.src}
               className={`absolute inset-0 w-full h-full object-cover ${i === slideIdx ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"}`}
               autoPlay loop playsInline muted preload="auto"
-              style={{ pointerEvents: "none" }}
+              webkit-playsinline="true"
             />
           ) : (
             <img
               key={i}
               src={s.src}
               alt={`Tênis ${s.label}`}
+              loading="lazy"
               className={`absolute inset-0 w-full h-full object-cover ${i === slideIdx ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"}`}
             />
           )
@@ -268,7 +271,7 @@ const ProductHero = () => {
                   : "border-border/40 hover:border-border"
               }`}
             >
-              <img src={color.images[0]} alt={color.name} className="w-full h-full object-cover" />
+              <img src={color.images[0]} alt={color.name} loading="lazy" className="w-full h-full object-cover" />
             </button>
           ))}
         </div>
