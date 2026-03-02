@@ -261,8 +261,42 @@ const Checkout = () => {
     setIsSubmitting(true);
 
     try {
-      // TODO: Integrate with Lovable Cloud edge function for PIX payment
-      toast.error("Integração de pagamento PIX ainda não configurada. Conecte o Lovable Cloud para ativar.");
+      const { supabase } = await import("@/integrations/supabase/client");
+
+      const amountInCents = Math.round(totalPrice * 100);
+
+      const { data, error } = await supabase.functions.invoke("create-pix", {
+        body: {
+          amount: amountInCents,
+          customer: {
+            name: nome,
+            cpf: cpf,
+            email: email,
+            phone: telefone,
+          },
+          items: items.map((item) => ({
+            colorName: item.colorName,
+            size: item.size,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+          })),
+          description: `World Tennis - ${items.map((i) => `${i.quantity}x ${i.colorName} Tam.${i.size}`).join(", ")}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (!data?.pixCode && !data?.transactionId) {
+        throw new Error("Resposta inválida do gateway de pagamento");
+      }
+
+      navigate("/pix", {
+        state: {
+          pixCode: data.pixCode,
+          transactionId: data.transactionId,
+          amount: amountInCents,
+        },
+      });
     } catch (err) {
       console.error("Payment error:", err);
       toast.error("Erro ao processar pagamento. Tente novamente.");
