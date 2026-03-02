@@ -7,7 +7,7 @@ import FlashOfferModal from "./FlashOfferModal";
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 const HERO_VIDEO = "/videos/hero-video.mp4";
-const SIZE_TABLE_IMG = "/placeholder.svg";
+const SIZE_TABLE_IMG = "/images/tabela-tamanhos.png";
 const SIZES = [34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45] as const;
 
 interface ColorOption {

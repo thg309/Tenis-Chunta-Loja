@@ -1,4 +1,4 @@
-const tabelaTamanhos = "/placeholder.svg";
+const tabelaTamanhos = "/images/tabela-tamanhos.png";
 
 const ProductDescription = () => {
   return (
