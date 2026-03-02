@@ -30,9 +30,9 @@ interface Slide {
   label: string;
 }
 
-/** Build a flat slide list: [video, azul1, azul2, azul3, bege1, ...] */
+/** Build a flat slide list: [azul1, azul2, azul3, bege1, ...] */
 function buildSlides(): { slides: Slide[]; colorStartIndex: number[] } {
-  const slides: Slide[] = [{ type: "video", src: HERO_VIDEO, label: "Vídeo" }];
+  const slides: Slide[] = [];
   const colorStartIndex: number[] = [];
 
   for (const color of COLORS) {
@@ -64,7 +64,7 @@ const ProductHero = () => {
   const { addItem } = useCart();
   const [colorIdx, setColorIdx] = useState(0);
   const [sizeVal, setSizeVal] = useState<number | null>(null);
-  const [slideIdx, setSlideIdx] = useState(COLOR_START[0]); // start on first color image
+  const [slideIdx, setSlideIdx] = useState(0);
   const [showFlash, setShowFlash] = useState(false);
   const [showSizeTable, setShowSizeTable] = useState(false);
   const [showError, setShowError] = useState(false);
