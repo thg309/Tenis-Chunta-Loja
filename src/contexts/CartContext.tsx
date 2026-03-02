@@ -4,8 +4,8 @@ export const shoes = [
   { src: "/images/azul1.webp", name: "Azul" },
   { src: "/images/bege1.webp", name: "Bege" },
   { src: "/images/branco1.webp", name: "Branco" },
-  { src: "/placeholder.svg", name: "Rosa" },
-  { src: "/placeholder.svg", name: "Verde" },
+  { src: "/images/rosa1.webp", name: "Rosa" },
+  { src: "/images/verde1.webp", name: "Verde" },
 ];
 
 export interface CartItem {

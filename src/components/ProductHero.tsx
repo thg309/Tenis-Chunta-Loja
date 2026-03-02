@@ -1,202 +1,205 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Star, ChevronLeft, ChevronRight, ShoppingCart, Truck, Shield, Zap, MessageCircle, X, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useCart } from "@/contexts/CartContext";
 import FlashOfferModal from "./FlashOfferModal";
 
-const heroVideoUrl = "/videos/hero-video.mp4";
-const tabelaTamanhos = "/placeholder.svg";
+// ─── Data ────────────────────────────────────────────────────────────────────
 
-// Images per color: [thumbnail, img2, img3]
-const colorImages: Record<string, string[]> = {
-  azul: ["/images/azul1.webp", "/images/azul2.webp", "/images/azul3.webp"],
-  bege: ["/images/bege1.webp", "/images/bege2.webp", "/images/bege3.webp"],
-  branco: ["/images/branco1.webp", "/images/branco2.webp", "/images/branco3.webp"],
-  rosa: ["/placeholder.svg"],
-  verde: ["/placeholder.svg"],
-};
+const HERO_VIDEO = "/videos/hero-video.mp4";
+const SIZE_TABLE_IMG = "/placeholder.svg";
+const SIZES = [34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45] as const;
 
-const shoes = [
-  { key: "azul", name: "Azul", thumbnail: colorImages.azul[0] },
-  { key: "bege", name: "Bege", thumbnail: colorImages.bege[0] },
-  { key: "branco", name: "Branco", thumbnail: colorImages.branco[0] },
-  { key: "rosa", name: "Rosa", thumbnail: colorImages.rosa[0] },
-  { key: "verde", name: "Verde", thumbnail: colorImages.verde[0] },
+interface ColorOption {
+  key: string;
+  name: string;
+  images: string[]; // first image = thumbnail
+}
+
+const COLORS: ColorOption[] = [
+  { key: "azul",   name: "Azul",   images: ["/images/azul1.webp",   "/images/azul2.webp",   "/images/azul3.webp"] },
+  { key: "bege",   name: "Bege",   images: ["/images/bege1.webp",   "/images/bege2.webp",   "/images/bege3.webp"] },
+  { key: "branco", name: "Branco", images: ["/images/branco1.webp", "/images/branco2.webp", "/images/branco3.webp"] },
+  { key: "rosa",   name: "Rosa",   images: ["/images/rosa1.webp",   "/images/rosa2.webp",   "/images/rosa3.webp"] },
+  { key: "verde",  name: "Verde",  images: ["/images/verde1.webp",  "/images/verde2.webp",  "/images/verde3.webp"] },
 ];
 
-// Build slides: video + all color images in order
-const buildSlides = () => {
-  const slides: { type: "video" | "image"; src: string; name: string; colorIndex?: number }[] = [
-    { type: "video", src: heroVideoUrl, name: "Vídeo" },
-  ];
-  shoes.forEach((shoe, colorIndex) => {
-    const images = colorImages[shoe.key];
-    images.forEach((img) => {
-      slides.push({ type: "image", src: img, name: shoe.name, colorIndex });
+interface Slide {
+  type: "video" | "image";
+  src: string;
+  label: string;
+}
+
+/** Build a flat slide list: [video, azul1, azul2, azul3, bege1, ...] */
+function buildSlides(): { slides: Slide[]; colorStartIndex: number[] } {
+  const slides: Slide[] = [{ type: "video", src: HERO_VIDEO, label: "Vídeo" }];
+  const colorStartIndex: number[] = [];
+
+  for (const color of COLORS) {
+    colorStartIndex.push(slides.length);
+    for (const img of color.images) {
+      slides.push({ type: "image", src: img, label: color.name });
+    }
+  }
+
+  return { slides, colorStartIndex };
+}
+
+const { slides: SLIDES, colorStartIndex: COLOR_START } = buildSlides();
+
+// ─── Image preloader ─────────────────────────────────────────────────────────
+
+function usePreloadImages(urls: string[]) {
+  useEffect(() => {
+    urls.forEach((url) => {
+      const img = new Image();
+      img.src = url;
     });
-  });
-  return slides;
-};
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+}
 
-const slides = buildSlides();
-
-// Get the first slide index for each color
-const colorFirstSlideIndex = shoes.map((shoe) => {
-  return slides.findIndex((s) => s.type === "image" && s.colorIndex === shoes.indexOf(shoe));
-});
-
-const sizes = [34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45];
+// ─── Component ───────────────────────────────────────────────────────────────
 
 const ProductHero = () => {
   const { addItem } = useCart();
-  const [selectedColor, setSelectedColor] = useState(0);
-  const [selectedSize, setSelectedSize] = useState<number | null>(null);
-  const [currentImage, setCurrentImage] = useState(1);
-  const [showFlashOffer, setShowFlashOffer] = useState(false);
+  const [colorIdx, setColorIdx] = useState(0);
+  const [sizeVal, setSizeVal] = useState<number | null>(null);
+  const [slideIdx, setSlideIdx] = useState(COLOR_START[0]); // start on first color image
+  const [showFlash, setShowFlash] = useState(false);
   const [showSizeTable, setShowSizeTable] = useState(false);
-  const [validationError, setValidationError] = useState(false);
+  const [showError, setShowError] = useState(false);
+
   const touchStartX = useRef(0);
-  const colorSectionRef = useRef<HTMLDivElement>(null);
+  const colorRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Preload all carousel images
-  useEffect(() => {
-    slides.forEach((slide) => {
-      if (slide.type === "image" && slide.src !== "/placeholder.svg") {
-        const img = new Image();
-        img.src = slide.src;
-      }
-    });
-  }, []);
+  // Preload all product images on mount
+  const allImageUrls = useMemo(() => SLIDES.filter((s) => s.type === "image").map((s) => s.src), []);
+  usePreloadImages(allImageUrls);
 
+  // Autoplay video when it's visible
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || slides[currentImage]?.type !== "video") return;
+    if (!video || SLIDES[slideIdx]?.type !== "video") return;
+    video.muted = true;
+    video.play().catch(() => {});
+  }, [slideIdx]);
 
-    const attemptAutoplay = async () => {
-      try {
-        video.muted = true;
-        await video.play();
-      } catch {
-        // Autoplay blocked
-      }
-    };
+  const slide = SLIDES[slideIdx];
+  const totalSlides = SLIDES.length;
 
-    attemptAutoplay();
-  }, [currentImage]);
+  // ─── Handlers ────────────────────────────────────────────────────────────
+
+  const goNext = () => setSlideIdx((i) => (i + 1) % totalSlides);
+  const goPrev = () => setSlideIdx((i) => (i - 1 + totalSlides) % totalSlides);
+
+  const selectColor = (idx: number) => {
+    setColorIdx(idx);
+    setSlideIdx(COLOR_START[idx]);
+  };
+
+  const selectSize = (size: number) => {
+    setSizeVal(size);
+    setShowError(false);
+  };
+
+  const validateSelection = (): boolean => {
+    if (sizeVal === null) {
+      setShowError(true);
+      colorRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return false;
+    }
+    setShowError(false);
+    return true;
+  };
 
   const handleBuyNow = () => {
-    if (selectedSize === null) {
-      setValidationError(true);
-      colorSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      return;
-    }
-    setValidationError(false);
-    setShowFlashOffer(true);
+    if (!validateSelection()) return;
+    setShowFlash(true);
   };
 
-  const handleColorSelect = (index: number) => {
-    setSelectedColor(index);
-    setCurrentImage(colorFirstSlideIndex[index]);
+  const handleAddToCart = () => {
+    if (!validateSelection()) return;
+    addItem(colorIdx, sizeVal!);
+    toast.success(`${COLORS[colorIdx].name} - Tam. ${sizeVal} adicionado ao carrinho!`, {
+      icon: <Check className="w-4 h-4" />,
+    });
   };
 
-  const handleSizeSelect = (size: number) => {
-    setSelectedSize(size);
-    setValidationError(false);
-  };
-
-  const nextImage = () => {
-    setCurrentImage((prev) => (prev + 1) % slides.length);
-  };
-
-  const prevImage = () => {
-    setCurrentImage((prev) => (prev - 1 + slides.length) % slides.length);
-  };
-
-  const handleTouchStart = (e: React.TouchEvent) => {
+  const onTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   };
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const onTouchEnd = (e: React.TouchEvent) => {
     const diff = touchStartX.current - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 50) {
-      diff > 0 ? nextImage() : prevImage();
-    }
+    if (Math.abs(diff) > 50) diff > 0 ? goNext() : goPrev();
   };
+
+  // ─── Render ──────────────────────────────────────────────────────────────
 
   return (
     <section id="inicio" className="container px-4 pt-5 pb-6">
       {/* Badges */}
       <div className="flex gap-2 mb-3">
-        <span className="text-[10px] font-bold text-success uppercase tracking-wider">
-          ● Oferta Exclusiva
-        </span>
-        <span className="text-[10px] font-bold text-accent uppercase tracking-wider">
-          🔥 Em Alta
-        </span>
+        <span className="text-[10px] font-bold text-success uppercase tracking-wider">● Oferta Exclusiva</span>
+        <span className="text-[10px] font-bold text-accent uppercase tracking-wider">🔥 Em Alta</span>
       </div>
 
       {/* Title */}
       <h1 className="text-[22px] font-extrabold text-foreground leading-tight mb-1 tracking-tight">
-        Tênis Carbon Marathon Chunta - Placa de Carbono Ultra Leve
+        Tênis Carbon Marathon Chunta – Placa de Carbono Ultra Leve
       </h1>
       <p className="text-sm text-muted-foreground mb-3">Tecnologia de Placa de Carbono</p>
 
-      {/* Rating + Stats */}
+      {/* Rating */}
       <div className="flex items-center gap-2 mb-5 text-sm">
         <div className="flex items-center gap-1">
           <div className="flex">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                className={`w-3.5 h-3.5 ${i < 5 ? "fill-star text-star" : "text-muted"}`}
-              />
+            {Array.from({ length: 5 }, (_, i) => (
+              <Star key={i} className="w-3.5 h-3.5 fill-star text-star" />
             ))}
           </div>
           <span className="font-bold text-foreground">4.9</span>
         </div>
         <span className="text-border">•</span>
         <span className="text-muted-foreground flex items-center gap-1">
-          <MessageCircle className="w-3.5 h-3.5" />
-          548
+          <MessageCircle className="w-3.5 h-3.5" /> 548
         </span>
         <span className="text-border">•</span>
         <span className="text-muted-foreground font-semibold">4mil+ vendidos</span>
       </div>
 
-      {/* Carousel */}
+      {/* ─── Carousel ──────────────────────────────────────────────────────── */}
       <div
         className="relative rounded-2xl overflow-hidden mb-5 aspect-square max-w-lg mx-auto bg-card shadow-sm"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
       >
-        {slides[currentImage].type === "video" ? (
+        {slide.type === "video" ? (
           <video
             ref={videoRef}
-            src={slides[currentImage].src}
+            src={slide.src}
             className="w-full h-full object-cover"
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
+            autoPlay loop muted playsInline preload="auto"
           />
         ) : (
           <img
-            src={slides[currentImage].src}
-            alt={`Tênis ${slides[currentImage].name}`}
+            key={slide.src}
+            src={slide.src}
+            alt={`Tênis ${slide.label}`}
             className="w-full h-full object-cover"
           />
         )}
+
         <button
-          onClick={prevImage}
+          onClick={goPrev}
           className="absolute left-2.5 top-1/2 -translate-y-1/2 bg-card/80 backdrop-blur-md rounded-full p-2 shadow-lg hover:bg-card transition-colors"
           aria-label="Anterior"
         >
           <ChevronLeft className="w-4 h-4 text-foreground" />
         </button>
         <button
-          onClick={nextImage}
+          onClick={goNext}
           className="absolute right-2.5 top-1/2 -translate-y-1/2 bg-card/80 backdrop-blur-md rounded-full p-2 shadow-lg hover:bg-card transition-colors"
           aria-label="Próximo"
         >
@@ -204,18 +207,16 @@ const ProductHero = () => {
         </button>
 
         <div className="absolute top-3 right-3 bg-foreground/70 backdrop-blur-sm text-background text-[11px] font-bold px-2.5 py-1 rounded-full">
-          {currentImage + 1}/{slides.length}
+          {slideIdx + 1}/{totalSlides}
         </div>
 
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-          {slides.map((_, i) => (
+          {SLIDES.map((_, i) => (
             <button
               key={i}
-              onClick={() => setCurrentImage(i)}
-              className={`rounded-full transition-all duration-300 ${
-                i === currentImage
-                  ? "bg-accent w-6 h-2 shadow-md"
-                  : "bg-card/60 w-2 h-2"
+              onClick={() => setSlideIdx(i)}
+              className={`rounded-full ${
+                i === slideIdx ? "bg-accent w-6 h-2 shadow-md" : "bg-card/60 w-2 h-2"
               }`}
               aria-label={`Slide ${i + 1}`}
             />
@@ -223,50 +224,47 @@ const ProductHero = () => {
         </div>
       </div>
 
-      {/* Color selector */}
-      <div ref={colorSectionRef} className="bg-card rounded-xl p-4 mb-3 shadow-sm border border-border/60">
+      {/* ─── Color selector ────────────────────────────────────────────────── */}
+      <div ref={colorRef} className="bg-card rounded-xl p-4 mb-3 shadow-sm border border-border/60">
         <div className="flex items-center gap-2 mb-3">
           <span className="text-sm font-bold text-foreground">Cor:</span>
-          <span className="text-sm text-accent font-semibold">{shoes[selectedColor].name}</span>
+          <span className="text-sm text-accent font-semibold">{COLORS[colorIdx].name}</span>
         </div>
-        {validationError && (
+        {showError && (
           <p className="text-destructive text-xs font-semibold mb-2">⚠️ Selecione uma cor e um número antes de comprar</p>
         )}
         <div className="grid grid-cols-5 gap-2.5">
-          {shoes.map((shoe, i) => (
+          {COLORS.map((color, i) => (
             <button
-              key={i}
-              onClick={() => handleColorSelect(i)}
+              key={color.key}
+              onClick={() => selectColor(i)}
               className={`aspect-square rounded-xl overflow-hidden border-2 transition-all duration-200 ${
-                i === selectedColor
+                i === colorIdx
                   ? "border-accent ring-2 ring-accent/20 scale-105"
                   : "border-border/40 hover:border-border"
               }`}
             >
-              <img src={shoe.thumbnail} alt={shoe.name} className="w-full h-full object-cover" />
+              <img src={color.images[0]} alt={color.name} className="w-full h-full object-cover" />
             </button>
           ))}
         </div>
       </div>
 
-      {/* Size selector */}
+      {/* ─── Size selector ─────────────────────────────────────────────────── */}
       <div className="bg-card rounded-xl p-4 mb-3 shadow-sm border border-border/60">
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-bold text-foreground">Tamanho:</span>
-          <button
-            onClick={() => setShowSizeTable(true)}
-            className="text-xs text-accent font-semibold hover:underline"
-          >
+          <button onClick={() => setShowSizeTable(true)} className="text-xs text-accent font-semibold hover:underline">
             📐 Guia de medidas
           </button>
         </div>
         <div className="grid grid-cols-6 gap-2">
-          {sizes.map((size) => (
+          {SIZES.map((size) => (
             <button
               key={size}
-              onClick={() => handleSizeSelect(size)}
+              onClick={() => selectSize(size)}
               className={`py-2.5 rounded-lg text-sm font-bold transition-all duration-200 ${
-                selectedSize === size
+                sizeVal === size
                   ? "bg-accent text-accent-foreground shadow-md scale-105"
                   : "bg-secondary text-foreground hover:bg-muted"
               }`}
@@ -277,7 +275,7 @@ const ProductHero = () => {
         </div>
       </div>
 
-      {/* Price */}
+      {/* ─── Price ─────────────────────────────────────────────────────────── */}
       <div id="comprar" className="scroll-mt-20 bg-card rounded-xl p-5 mb-4 shadow-sm border border-border/60">
         <div className="flex items-baseline gap-2.5 mb-1">
           <span className="text-[32px] font-black text-foreground tracking-tight">R$ 77,12</span>
@@ -287,12 +285,10 @@ const ProductHero = () => {
           <span className="bg-success text-success-foreground text-[11px] font-extrabold px-2 py-0.5 rounded">-63%</span>
           <span className="text-sm text-muted-foreground">à vista no PIX</span>
         </div>
-        <p className="text-sm font-bold text-success flex items-center gap-1.5">
-          💰 Economize R$ 252,78
-        </p>
+        <p className="text-sm font-bold text-success flex items-center gap-1.5">💰 Economize R$ 252,78</p>
       </div>
 
-      {/* Benefits */}
+      {/* ─── Benefits ──────────────────────────────────────────────────────── */}
       <div className="bg-card rounded-xl p-4 mb-6 shadow-sm border border-border/60 space-y-3">
         <div className="flex items-center gap-3 text-sm">
           <div className="w-8 h-8 rounded-lg bg-success/10 flex items-center justify-center shrink-0">
@@ -329,7 +325,7 @@ const ProductHero = () => {
         </div>
       </div>
 
-      {/* CTA Buttons */}
+      {/* ─── CTA ───────────────────────────────────────────────────────────── */}
       <div className="flex flex-col gap-3">
         <button
           onClick={handleBuyNow}
@@ -338,18 +334,7 @@ const ProductHero = () => {
           🛒 Comprar agora
         </button>
         <button
-          onClick={() => {
-            if (selectedSize === null) {
-              setValidationError(true);
-              colorSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-              return;
-            }
-            setValidationError(false);
-            addItem(selectedColor, selectedSize);
-            toast.success(`${shoes[selectedColor].name} - Tam. ${selectedSize} adicionado ao carrinho!`, {
-              icon: <Check className="w-4 h-4" />,
-            });
-          }}
+          onClick={handleAddToCart}
           className="w-full border-2 border-success text-success font-bold py-3.5 rounded-xl text-base flex items-center justify-center gap-2 hover:bg-success/5 transition-colors"
         >
           <ShoppingCart className="w-5 h-5" />
@@ -357,12 +342,9 @@ const ProductHero = () => {
         </button>
       </div>
 
-      {/* Size Table Modal */}
+      {/* ─── Size Table Modal ──────────────────────────────────────────────── */}
       {showSizeTable && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-          onClick={() => setShowSizeTable(false)}
-        >
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4" onClick={() => setShowSizeTable(false)}>
           <button
             onClick={() => setShowSizeTable(false)}
             className="absolute top-4 right-4 text-background text-3xl font-light z-10 w-10 h-10 flex items-center justify-center"
@@ -370,7 +352,7 @@ const ProductHero = () => {
             <X className="w-6 h-6" />
           </button>
           <img
-            src={tabelaTamanhos}
+            src={SIZE_TABLE_IMG}
             alt="Tabela de Tamanhos"
             className="max-h-[85vh] max-w-[95vw] object-contain rounded-xl"
             onClick={(e) => e.stopPropagation()}
@@ -379,10 +361,10 @@ const ProductHero = () => {
       )}
 
       <FlashOfferModal
-        open={showFlashOffer}
-        onOpenChange={setShowFlashOffer}
-        selectedColor={selectedColor}
-        selectedSize={selectedSize}
+        open={showFlash}
+        onOpenChange={setShowFlash}
+        selectedColor={colorIdx}
+        selectedSize={sizeVal}
       />
     </section>
   );
