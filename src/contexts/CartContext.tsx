@@ -1,18 +1,11 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
 
-// Placeholder images - user needs to upload actual shoe images
-const shoeGreen = "/placeholder.svg";
-const shoeSalmon = "/placeholder.svg";
-const shoeWhiteBlue = "/placeholder.svg";
-const shoeWhiteOrange = "/placeholder.svg";
-const shoeBlue = "/placeholder.svg";
-
 export const shoes = [
-  { src: shoeBlue, name: "Azul" },
-  { src: shoeSalmon, name: "Bege" },
-  { src: shoeWhiteBlue, name: "Branco" },
-  { src: shoeWhiteOrange, name: "Rosa" },
-  { src: shoeGreen, name: "Verde" },
+  { src: "/images/azul1.webp", name: "Azul" },
+  { src: "/images/bege1.webp", name: "Bege" },
+  { src: "/images/branco1.webp", name: "Branco" },
+  { src: "/placeholder.svg", name: "Rosa" },
+  { src: "/placeholder.svg", name: "Verde" },
 ];
 
 export interface CartItem {
