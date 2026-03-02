@@ -7,9 +7,9 @@ import {
 
 const faqs = [
   {
-    question: "O Carbon Marathon Chique B é um tênis original?",
+    question: "O Carbon Marathon Chunta é um tênis original?",
     answer:
-      "Sim! O Carbon Marathon Chique B é um tênis original com certificado de autenticidade. Trabalhamos diretamente com o fabricante para garantir a qualidade e originalidade de todos os produtos.",
+      "Sim! O Carbon Marathon Chunta é um tênis original com certificado de autenticidade. Trabalhamos diretamente com o fabricante para garantir a qualidade e originalidade de todos os produtos.",
   },
   {
     question: "A placa de carbono realmente faz diferença?",

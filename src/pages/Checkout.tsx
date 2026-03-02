@@ -381,7 +381,7 @@ const Checkout = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-1">
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-foreground truncate">Carbon Marathon Chique B</p>
+                      <p className="text-xs font-bold text-foreground truncate">Carbon Marathon Chunta</p>
                       <p className="text-[11px] text-muted-foreground">{item.colorName} • Tam. {item.size}</p>
                     </div>
                     <button onClick={() => removeItem(item.id)} className="text-muted-foreground hover:text-destructive transition-colors p-0.5" aria-label="Remover">
