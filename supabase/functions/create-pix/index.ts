@@ -35,16 +35,16 @@ serve(async (req: Request) => {
     // Build payload for Duttyfy
     const pixPayload: Record<string, unknown> = {
       amount,
+      paymentMethod: "PIX",
       customer: {
         name: customer.name,
-        cpf: customer.cpf.replace(/\D/g, ""),
+        CPF: customer.cpf.replace(/\D/g, ""),
         email: customer.email || "",
         phone: customer.phone ? customer.phone.replace(/\D/g, "") : "",
       },
-      description: description || "World Tennis - Pagamento PIX",
+      item: description || "World Tennis - Pagamento PIX",
     };
 
-    if (items) pixPayload.items = items;
     if (utm) pixPayload.utm = utm;
 
     // Call Duttyfy API
