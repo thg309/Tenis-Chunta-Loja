@@ -39,7 +39,7 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const UNIT_PRICE = 77.12;
+const UNIT_PRICE = 139.90;
 const STORAGE_KEY = "passofirme-cart";
 
 const loadCartFromStorage = (): CartItem[] => {
