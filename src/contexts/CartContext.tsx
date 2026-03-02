@@ -5,7 +5,7 @@ const shoeGreen = "/placeholder.svg";
 const shoeSalmon = "/placeholder.svg";
 const shoeWhiteBlue = "/placeholder.svg";
 const shoeWhiteOrange = "/placeholder.svg";
-const shoeBlue = "/placeholder.svg";
+const shoeBlue = "/images/shoe-blue-1.webp";
 
 export const shoes = [
   { src: shoeBlue, name: "Azul" },
