@@ -8,11 +8,11 @@ const shoeWhiteOrange = "/placeholder.svg";
 const shoeBlue = "/placeholder.svg";
 
 export const shoes = [
-  { src: shoeGreen, name: "Verde" },
-  { src: shoeSalmon, name: "Rosa/Salmão" },
-  { src: shoeWhiteBlue, name: "Branco/Azul" },
-  { src: shoeWhiteOrange, name: "Branco/Laranja" },
   { src: shoeBlue, name: "Azul" },
+  { src: shoeSalmon, name: "Bege" },
+  { src: shoeWhiteBlue, name: "Branco" },
+  { src: shoeWhiteOrange, name: "Rosa" },
+  { src: shoeGreen, name: "Verde" },
 ];
 
 export interface CartItem {

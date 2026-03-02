@@ -16,19 +16,19 @@ const tabelaTamanhos = "/placeholder.svg";
 
 const slides: { type: "video" | "image"; src: string; name: string }[] = [
   { type: "video", src: heroVideoUrl, name: "Vídeo" },
-  { type: "image", src: shoeGreen, name: "Verde" },
-  { type: "image", src: shoeSalmon, name: "Rosa/Salmão" },
-  { type: "image", src: shoeWhiteBlue, name: "Branco/Azul" },
-  { type: "image", src: shoeWhiteOrange, name: "Branco/Laranja" },
   { type: "image", src: shoeBlue, name: "Azul" },
+  { type: "image", src: shoeSalmon, name: "Bege" },
+  { type: "image", src: shoeWhiteBlue, name: "Branco" },
+  { type: "image", src: shoeWhiteOrange, name: "Rosa" },
+  { type: "image", src: shoeGreen, name: "Verde" },
 ];
 
 const shoes = [
-  { src: shoeGreen, name: "Verde" },
-  { src: shoeSalmon, name: "Rosa/Salmão" },
-  { src: shoeWhiteBlue, name: "Branco/Azul" },
-  { src: shoeWhiteOrange, name: "Branco/Laranja" },
   { src: shoeBlue, name: "Azul" },
+  { src: shoeSalmon, name: "Bege" },
+  { src: shoeWhiteBlue, name: "Branco" },
+  { src: shoeWhiteOrange, name: "Rosa" },
+  { src: shoeGreen, name: "Verde" },
 ];
 
 const sizes = [34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45];
