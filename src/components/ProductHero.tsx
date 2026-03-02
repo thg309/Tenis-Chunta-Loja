@@ -5,31 +5,45 @@ import { useCart } from "@/contexts/CartContext";
 import FlashOfferModal from "./FlashOfferModal";
 
 const heroVideoUrl = "/videos/hero-video.mp4";
-
-// Placeholder images - user needs to upload actual shoe images
-const shoeGreen = "/placeholder.svg";
-const shoeSalmon = "/placeholder.svg";
-const shoeWhiteBlue = "/placeholder.svg";
-const shoeWhiteOrange = "/placeholder.svg";
-const shoeBlue = "/placeholder.svg";
 const tabelaTamanhos = "/placeholder.svg";
 
-const slides: { type: "video" | "image"; src: string; name: string }[] = [
-  { type: "video", src: heroVideoUrl, name: "Vídeo" },
-  { type: "image", src: shoeBlue, name: "Azul" },
-  { type: "image", src: shoeSalmon, name: "Bege" },
-  { type: "image", src: shoeWhiteBlue, name: "Branco" },
-  { type: "image", src: shoeWhiteOrange, name: "Rosa" },
-  { type: "image", src: shoeGreen, name: "Verde" },
-];
+// Images per color: [thumbnail, img2, img3]
+const colorImages: Record<string, string[]> = {
+  azul: ["/images/azul1.webp", "/images/azul2.webp", "/images/azul3.webp"],
+  bege: ["/images/bege1.webp", "/images/bege2.webp", "/images/bege3.webp"],
+  branco: ["/images/branco1.webp", "/images/branco2.webp", "/images/branco3.webp"],
+  rosa: ["/placeholder.svg"],
+  verde: ["/placeholder.svg"],
+};
 
 const shoes = [
-  { src: shoeBlue, name: "Azul" },
-  { src: shoeSalmon, name: "Bege" },
-  { src: shoeWhiteBlue, name: "Branco" },
-  { src: shoeWhiteOrange, name: "Rosa" },
-  { src: shoeGreen, name: "Verde" },
+  { key: "azul", name: "Azul", thumbnail: colorImages.azul[0] },
+  { key: "bege", name: "Bege", thumbnail: colorImages.bege[0] },
+  { key: "branco", name: "Branco", thumbnail: colorImages.branco[0] },
+  { key: "rosa", name: "Rosa", thumbnail: colorImages.rosa[0] },
+  { key: "verde", name: "Verde", thumbnail: colorImages.verde[0] },
 ];
+
+// Build slides: video + all color images in order
+const buildSlides = () => {
+  const slides: { type: "video" | "image"; src: string; name: string; colorIndex?: number }[] = [
+    { type: "video", src: heroVideoUrl, name: "Vídeo" },
+  ];
+  shoes.forEach((shoe, colorIndex) => {
+    const images = colorImages[shoe.key];
+    images.forEach((img) => {
+      slides.push({ type: "image", src: img, name: shoe.name, colorIndex });
+    });
+  });
+  return slides;
+};
+
+const slides = buildSlides();
+
+// Get the first slide index for each color
+const colorFirstSlideIndex = shoes.map((shoe) => {
+  return slides.findIndex((s) => s.type === "image" && s.colorIndex === shoes.indexOf(shoe));
+});
 
 const sizes = [34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45];
 
@@ -73,7 +87,7 @@ const ProductHero = () => {
 
   const handleColorSelect = (index: number) => {
     setSelectedColor(index);
-    setCurrentImage(index + 1);
+    setCurrentImage(colorFirstSlideIndex[index]);
   };
 
   const handleSizeSelect = (size: number) => {
@@ -219,7 +233,7 @@ const ProductHero = () => {
                   : "border-border/40 hover:border-border"
               }`}
             >
-              <img src={shoe.src} alt={shoe.name} className="w-full h-full object-cover" />
+              <img src={shoe.thumbnail} alt={shoe.name} className="w-full h-full object-cover" />
             </button>
           ))}
         </div>
