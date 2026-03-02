@@ -273,6 +273,15 @@ const Checkout = () => {
             email: email.trim(),
             phone: telefone.replace(/\D/g, ""),
           },
+          address: {
+            street: logradouro.trim(),
+            number: numero.trim(),
+            complement: complemento.trim(),
+            neighborhood: bairro.trim(),
+            city: cidade.trim(),
+            state: uf.trim().toUpperCase(),
+            zipCode: cep.replace(/\D/g, ""),
+          },
           items: items.map((item) => ({
             colorName: item.colorName,
             size: item.size,
