@@ -7,6 +7,7 @@ import {
 import { toast } from "sonner";
 import { useCart } from "@/contexts/CartContext";
 import { Progress } from "@/components/ui/progress";
+import { supabase } from "@/integrations/supabase/client";
 
 const testimonials = [
   {
@@ -261,8 +262,47 @@ const Checkout = () => {
     setIsSubmitting(true);
 
     try {
-      // TODO: Integrate with Lovable Cloud edge function for PIX payment
-      toast.error("Integração de pagamento PIX ainda não configurada. Conecte o Lovable Cloud para ativar.");
+      const amountInCents = Math.round(totalPrice * 100);
+
+      const { data, error } = await supabase.functions.invoke("create-pix-payment", {
+        body: {
+          amount: amountInCents,
+          customer: {
+            name: nome.trim(),
+            cpf: cpf.replace(/\D/g, ""),
+            email: email.trim(),
+            phone: telefone.replace(/\D/g, ""),
+          },
+          items: items.map((item) => ({
+            colorName: item.colorName,
+            size: item.size,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+          })),
+        },
+      });
+
+      if (error) {
+        console.error("Edge function error:", error);
+        toast.error("Erro ao gerar PIX. Tente novamente.");
+        return;
+      }
+
+      if (data?.error) {
+        console.error("PIX API error:", data.error);
+        toast.error(data.error || "Erro ao gerar PIX.");
+        return;
+      }
+
+      navigate("/pix", {
+        state: {
+          qrcode: data.qrcode,
+          url: data.url,
+          expirationDate: data.expirationDate,
+          amount: amountInCents,
+          transactionId: data.transactionId,
+        },
+      });
     } catch (err) {
       console.error("Payment error:", err);
       toast.error("Erro ao processar pagamento. Tente novamente.");
