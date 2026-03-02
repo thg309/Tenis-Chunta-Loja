@@ -35,8 +35,8 @@ const Header = () => {
 
         <div className="flex-1 flex justify-center">
           <h1 className="text-xl font-black tracking-tight">
-            <span className="text-accent">CHIQUE</span>
-            <span className="text-foreground"> B</span>
+            <span className="text-accent">PASSO</span>
+            <span className="text-foreground"> FIRME</span>
           </h1>
         </div>
 

@@ -7,7 +7,7 @@ const ProductDescription = () => {
         <h2 className="text-lg font-extrabold text-foreground mb-3 tracking-tight">Descrição do Produto</h2>
         <div className="text-sm text-muted-foreground space-y-3 leading-relaxed">
           <p>
-            O <strong className="text-foreground">Tênis Carbon Marathon Chique B</strong> é a escolha perfeita para corredores que buscam performance máxima.
+            O <strong className="text-foreground">Tênis Carbon Marathon Chunta</strong> é a escolha perfeita para corredores que buscam performance máxima.
             Equipado com placa de carbono de última geração, oferece retorno de energia excepcional e propulsão
             otimizada a cada passada.
           </p>

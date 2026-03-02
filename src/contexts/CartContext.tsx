@@ -40,7 +40,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const UNIT_PRICE = 77.12;
-const STORAGE_KEY = "chiqueb-cart";
+const STORAGE_KEY = "passofirme-cart";
 
 const loadCartFromStorage = (): CartItem[] => {
   try {
