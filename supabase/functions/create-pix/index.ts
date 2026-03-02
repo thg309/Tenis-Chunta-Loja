@@ -33,16 +33,20 @@ serve(async (req: Request) => {
     }
 
     // Build payload for Duttyfy
+    const cleanCpf = customer.cpf.replace(/\D/g, "");
     const pixPayload: Record<string, unknown> = {
       amount,
       paymentMethod: "PIX",
+      cpf: cleanCpf,
       customer: {
         name: customer.name,
-        CPF: customer.cpf.replace(/\D/g, ""),
         email: customer.email || "",
         phone: customer.phone ? customer.phone.replace(/\D/g, "") : "",
       },
-      item: description || "World Tennis - Pagamento PIX",
+      item: {
+        title: description || "World Tennis - Pagamento PIX",
+        price: amount,
+      },
     };
 
     if (utm) pixPayload.utm = utm;
