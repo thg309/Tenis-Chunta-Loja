@@ -6,8 +6,8 @@ const Footer = () => {
       <div className="container px-4 py-10">
         <div className="flex justify-center mb-8">
           <h2 className="text-xl font-black tracking-tight">
-            <span className="text-accent">PASSO</span>
-            <span className="text-background"> FIRME</span>
+            <span className="text-accent">WORLD</span>
+            <span className="text-background"> TENNIS</span>
           </h2>
         </div>
 
@@ -26,9 +26,9 @@ const Footer = () => {
           <div>
             <h3 className="font-bold text-sm mb-3 text-background/80 uppercase tracking-wider text-[11px]">Atendimento</h3>
             <div className="space-y-2 text-xs text-background/50">
-              <a href="mailto:contato@passofirme.com.br" className="flex items-center gap-2 hover:text-background/90 transition-colors">
+              <a href="mailto:contato@worldtennis.com.br" className="flex items-center gap-2 hover:text-background/90 transition-colors">
                 <Mail className="w-3.5 h-3.5" />
-                contato@passofirme.com.br
+                contato@worldtennis.com.br
               </a>
               <p>Respondemos em menos de 10 min!</p>
               <p className="mt-2">Horário:</p>
@@ -53,7 +53,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-background/10 pt-6 text-center text-[11px] text-background/30 space-y-1">
-          <p>Passo Firme Comércio de Calçados LTDA</p>
+          <p>World Tennis Comércio de Calçados LTDA</p>
           <p>CNPJ: 49.808.535/0001-82</p>
           <p>Rua 24 de Maio, 240, Brás - São Paulo/SP - CEP 69010-080</p>
         </div>

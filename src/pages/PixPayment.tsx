@@ -71,8 +71,8 @@ const PixPayment = () => {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <h1 className="text-xl font-black tracking-tight">
-            <span className="text-accent">PASSO</span>
-            <span className="text-foreground"> FIRME</span>
+            <span className="text-accent">WORLD</span>
+            <span className="text-foreground"> TENNIS</span>
           </h1>
           <div className="w-5" />
         </div>
