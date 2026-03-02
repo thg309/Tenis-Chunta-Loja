@@ -59,6 +59,16 @@ const ProductHero = () => {
   const colorSectionRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  // Preload all carousel images
+  useEffect(() => {
+    slides.forEach((slide) => {
+      if (slide.type === "image" && slide.src !== "/placeholder.svg") {
+        const img = new Image();
+        img.src = slide.src;
+      }
+    });
+  }, []);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video || slides[currentImage]?.type !== "video") return;
