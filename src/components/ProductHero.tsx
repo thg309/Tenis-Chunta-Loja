@@ -37,7 +37,7 @@ const ProductHero = () => {
   const { addItem } = useCart();
   const [selectedColor, setSelectedColor] = useState(0);
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
-  const [currentImage, setCurrentImage] = useState(0);
+  const [currentImage, setCurrentImage] = useState(1);
   const [showFlashOffer, setShowFlashOffer] = useState(false);
   const [showSizeTable, setShowSizeTable] = useState(false);
   const [validationError, setValidationError] = useState(false);
