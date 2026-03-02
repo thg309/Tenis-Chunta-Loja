@@ -175,21 +175,25 @@ const ProductHero = () => {
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-        {slide.type === "video" ? (
-          <video
-            ref={videoRef}
-            src={slide.src}
-            className="w-full h-full object-cover"
-            autoPlay loop muted playsInline preload="auto"
-          />
-        ) : (
-          <img
-            key={slide.src}
-            src={slide.src}
-            alt={`Tênis ${slide.label}`}
-            className="w-full h-full object-cover"
-          />
-        )}
+        {/* Render ALL slides stacked; only the active one is visible */}
+        {SLIDES.map((s, i) => (
+          s.type === "video" ? (
+            <video
+              key={i}
+              ref={i === slideIdx ? videoRef : undefined}
+              src={s.src}
+              className={`absolute inset-0 w-full h-full object-cover ${i === slideIdx ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"}`}
+              autoPlay loop muted playsInline preload="auto"
+            />
+          ) : (
+            <img
+              key={i}
+              src={s.src}
+              alt={`Tênis ${s.label}`}
+              className={`absolute inset-0 w-full h-full object-cover ${i === slideIdx ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"}`}
+            />
+          )
+        ))}
 
         <button
           onClick={goPrev}
