@@ -11,7 +11,7 @@ const shoeGreen = "/placeholder.svg";
 const shoeSalmon = "/placeholder.svg";
 const shoeWhiteBlue = "/placeholder.svg";
 const shoeWhiteOrange = "/placeholder.svg";
-const shoeBlue = "/placeholder.svg";
+const shoeBlue = "/images/shoe-blue-1.webp";
 const tabelaTamanhos = "/placeholder.svg";
 
 const slides: { type: "video" | "image"; src: string; name: string }[] = [
