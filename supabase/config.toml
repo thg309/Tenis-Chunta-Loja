@@ -1,10 +1,1 @@
 project_id = "vsgzjzrzhoctqkmzjnpy"
-
-[functions.create-pix]
-verify_jwt = false
-
-[functions.pix-status]
-verify_jwt = false
-
-[functions.pix-webhook]
-verify_jwt = false

@@ -261,42 +261,8 @@ const Checkout = () => {
     setIsSubmitting(true);
 
     try {
-      const { supabase } = await import("@/integrations/supabase/client");
-
-      const amountInCents = Math.round(totalPrice * 100);
-      const itemDescription = `World Tennis - ${items.map((i) => `${i.quantity}x ${i.colorName} Tam.${i.size}`).join(", ")}`;
-
-      const { data, error } = await supabase.functions.invoke("create-pix", {
-        body: {
-          amount: amountInCents,
-          customer: {
-            name: nome,
-            document: cpf.replace(/\D/g, ""),
-            email: email,
-            phone: telefone.replace(/\D/g, ""),
-          },
-          item: {
-            title: itemDescription,
-            price: amountInCents,
-            quantity: items.reduce((sum, i) => sum + i.quantity, 0),
-          },
-          description: itemDescription,
-        },
-      });
-
-      if (error) throw error;
-
-      if (!data?.pixCode && !data?.transactionId) {
-        throw new Error("Resposta inválida do gateway de pagamento");
-      }
-
-      navigate("/pix", {
-        state: {
-          pixCode: data.pixCode,
-          transactionId: data.transactionId,
-          amount: amountInCents,
-        },
-      });
+      // TODO: Integrate with Lovable Cloud edge function for PIX payment
+      toast.error("Integração de pagamento PIX ainda não configurada. Conecte o Lovable Cloud para ativar.");
     } catch (err) {
       console.error("Payment error:", err);
       toast.error("Erro ao processar pagamento. Tente novamente.");
