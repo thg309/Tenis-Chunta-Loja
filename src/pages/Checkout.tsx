@@ -166,7 +166,9 @@ const Checkout = () => {
     const cleanCep = cep.replace(/\D/g, "");
     if (cleanCep.length === 8) {
       setCepNotFound(false);
-      fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+      fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cep-lookup?cep=${cleanCep}`, {
+        headers: { "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+      })
         .then((res) => res.json())
         .then((data) => {
           if (data.erro) {
