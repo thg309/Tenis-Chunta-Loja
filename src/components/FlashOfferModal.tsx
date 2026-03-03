@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, Zap, Truck, CheckCircle, MapPin, Loader2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogOverlay,
@@ -85,9 +86,15 @@ const FlashOfferModal = ({ open, onOpenChange, selectedColor, selectedSize }: Fl
     setCepError("");
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cep-lookup?cep=${cleanCep}`, {
-        headers: { "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cep-lookup?cep=${cleanCep}`,
+        {
+          headers: {
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+        }
+      );
       const data = await response.json();
 
       if (data.erro) {

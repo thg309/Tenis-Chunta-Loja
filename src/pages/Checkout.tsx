@@ -167,7 +167,10 @@ const Checkout = () => {
     if (cleanCep.length === 8) {
       setCepNotFound(false);
       fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cep-lookup?cep=${cleanCep}`, {
-        headers: { "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+        headers: {
+          "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
       })
         .then((res) => res.json())
         .then((data) => {
