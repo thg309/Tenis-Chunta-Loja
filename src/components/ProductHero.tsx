@@ -305,7 +305,7 @@ const ProductHero = () => {
       {/* ─── Price ─────────────────────────────────────────────────────────── */}
       <div id="comprar" className="scroll-mt-20 bg-card rounded-xl p-5 mb-4 shadow-sm border border-border/60">
         <div className="flex items-baseline gap-2.5 mb-1">
-          <span className="text-[32px] font-black text-foreground tracking-tight">R$ 139,90</span>
+          <span className="text-[32px] font-black text-foreground tracking-tight">R$ 129,99</span>
           <span className="text-sm text-muted-foreground line-through">R$ 329,90</span>
         </div>
         <div className="flex items-center gap-2 mb-2">
