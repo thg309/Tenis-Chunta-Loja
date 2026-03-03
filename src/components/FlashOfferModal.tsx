@@ -85,7 +85,9 @@ const FlashOfferModal = ({ open, onOpenChange, selectedColor, selectedSize }: Fl
     setCepError("");
 
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`);
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/cep-lookup?cep=${cleanCep}`, {
+        headers: { "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY },
+      });
       const data = await response.json();
 
       if (data.erro) {
