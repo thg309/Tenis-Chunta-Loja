@@ -305,14 +305,14 @@ const ProductHero = () => {
       {/* ─── Price ─────────────────────────────────────────────────────────── */}
       <div id="comprar" className="scroll-mt-20 bg-card rounded-xl p-5 mb-4 shadow-sm border border-border/60">
         <div className="flex items-baseline gap-2.5 mb-1">
-          <span className="text-[32px] font-black text-foreground tracking-tight">R$ 129,99</span>
+          <span className="text-[32px] font-black text-foreground tracking-tight">R$ 49,99</span>
           <span className="text-sm text-muted-foreground line-through">R$ 329,90</span>
         </div>
         <div className="flex items-center gap-2 mb-2">
-          <span className="bg-success text-success-foreground text-[11px] font-extrabold px-2 py-0.5 rounded">-58%</span>
+          <span className="bg-success text-success-foreground text-[11px] font-extrabold px-2 py-0.5 rounded">-85%</span>
           <span className="text-sm text-muted-foreground">à vista no PIX</span>
         </div>
-        <p className="text-sm font-bold text-success flex items-center gap-1.5">💰 Economize R$ 190,00</p>
+        <p className="text-sm font-bold text-success flex items-center gap-1.5">💰 Economize R$ 279,91</p>
       </div>
 
       {/* ─── Benefits ──────────────────────────────────────────────────────── */}

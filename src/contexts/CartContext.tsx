@@ -39,7 +39,7 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-const UNIT_PRICE = 129.99;
+const UNIT_PRICE = 49.99;
 const STORAGE_KEY = "worldtennis-cart";
 
 const loadCartFromStorage = (): CartItem[] => {
